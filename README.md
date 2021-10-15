@@ -1,3 +1,5 @@
-# taxirideRL https://www.learndatasci.com/tutorials/reinforcement-q-learning-scratch-python-openai-gym/
+# taxirideRL 
 
-A project to look at how to build a reinforcement learning model using an environment from openai gym 
+Taken from https://www.learndatasci.com/tutorials/reinforcement-q-learning-scratch-python-openai-gym/
+
+This project is to building a reinforcement learning model using an environment from openai gym 
