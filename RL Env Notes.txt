@@ -1,0 +1,129 @@
+JobSchedulingRLenv/state_generate.py /. @TimeTraveller-San
+   
+import numpy as np                                                              {standard imports}
+import pandas as pd
+from tabulate import tabulate
+
+
+def zeros(rows, columns):
+    return pd.DataFrame(np.zeros((rows, columns)))                              {Creates a blank dataframe using parameters passed in}
+
+def fix(a, b, r):
+    """if both are zero, make any one non zero"""
+    if not a and not b:
+        if np.random.randint(1, 2):                                             {checks if the first 2 parameters are set and if not sets
+            a = np.random.randint(1, r)                                             the first to an integer between 1 and the last parameter}
+        else:                                                                   {THIS WILL NEVER EXECUTE 'np.random.randint(1, 2)' is always true}
+            b = np.random.randint(1, r)
+        return a, b
+    return a, b
+
+class Jobs():
+    """
+    Generates the jobs.
+    """
+    def __init__(self, n=3, max_time=3, max_resource=3):
+        """
+        Generates and prints the starting states
+        Number of resources are 2
+        @param n is number of jobs
+        @param max_time is maximum time
+        @param max_resource is maximum resources
+        """
+
+        self.max_time = max_time
+        self.n = n
+        self.max_resource = max_resource
+        self.jlist1 = []                                                        {creates 2 blank lists jlist1 and jlist2}
+        self.jlist2 = []
+        self.backlog = dict(
+                            zip([t for t in range(1, self.max_time+1)],         {creates a backlog dictionary with the key as values from 1 to the maximum job time+1
+                            [0 for t in range(1,self.max_time+1)])                  and the value for each key as a 0}
+                        )
+
+    def generate_state(self):
+        jtime = np.random.randint(1, self.max_time+1, self.n)                   {creates an array of random integers between 1 and the maximum job time+1 - one for each job}
+        uniques = pd.DataFrame(jtime)[0].value_counts()                         {creates a dataframe with each unique max job time and the count}
+        resource1_req = np.random.randint(0, self.max_resource+1, self.n)       {creates an array of random integers between 1 and the maximum resource+1 - one for each job}
+        resource2_req = np.random.randint(0, self.max_resource+1, self.n)
+        index = 0
+        for time in range(1, self.max_time+1):                                  {runs a loop for each integer between 1 and the max job time+1}
+            if time in uniques.index:                                           {checks if this integer is in the unique dataframe}
+                self.backlog[time] += uniques[time] - 1                         {if it is - then it adds one less the integer to the index on the backlog}
+                uniques[time] = 0                                               {then sets the value of that unique key to zero}
+                r1, r2 = resource1_req[index], resource2_req[index]             {creates 2 variables from the arrays created earlier - potentially to assign resource randomly}
+                r1, r2 = fix(r1, r2, self.max_resource+1)                       {ensures that there are resources allocated and neither is blank}
+                m1, m2 = self.generate_job_matrix(time, r1, r2)                 {creates 2 variables using the GENERATE_JOB_MATRIX}
+                self.jlist1.append(m1)                                          {appends the variables to the lists created earlier}
+                self.jlist2.append(m2)
+                index += 1
+            else:                                                               {if the integer isn't in the unique list}
+                m1, m2 = self.empty_generate_job_matrix(time)                   {creates an empty job matrix}
+                self.jlist1.append(m1)                                          {appends the matrices to the lists created earlier}
+                self.jlist2.append(m2)
+        self.rMatrix1, self.rMatrix2 = self.generate_resource_matrix()          {GENERATES RESOURCE MATRIX but doesn't return anything????}
+
+
+    def empty_generate_job_matrix(self, time):
+        matrix1 = zeros(self.n * self.max_time, self.max_resource)              {creates a matrix filled with zeroes dimensions are number of job * max job time
+        matrix2 = zeros(self.n * self.max_time, self.max_resource)                  by the max resource}
+        return matrix1, matrix2
+
+    def generate_resource_matrix(self):
+        rows = self.n * self.max_time                                           {sets the number of rows to be number of job * max job time}
+        columns = self.max_resource                                             {sets the number of columns to be max resource}
+        rMatrix1 = zeros(rows, columns)                                         {creates a matrix filled with zeroes dimensions are number of job * max job time
+        rMatrix2 = zeros(rows, columns)                                             by the max resource}
+        return rMatrix1, rMatrix2
+
+    def generate_job_matrix(self, time, r1, r2):
+        rows = self.n * self.max_time                                           {sets the number of rows to be number of job * max job time}
+        columns = self.max_resource                                             {sets the number of columns to be max resource}
+        matrix1 = zeros(rows, columns)                                          [creates the matrix of zeroes as above]
+        matrix1.iloc[0:time, 0:r1] = time                                       {fills the top 'time' rows and some of the columns with the 'time'}
+        matrix2 = zeros(rows, columns)
+        matrix2.iloc[0:time, 0:r2] = time
+        return matrix1, matrix2
+
+    def isempty_job(self, m1, m2):
+        return ((not m1.any().any()) and (not m2.any().any()))                  {checks if either job matrix is empty}
+
+    def getState(self):
+        self.generate_state()                                                   {creates 2 resource matrices same dimensions as the job matrices}
+        keys = ['resource1', 'resource2']                                       {creates a list of 'keys' with 2 items called resource}
+        for i in range(1, self.max_time+1):
+            keys.append(f'job{i}')                                              {creates an additional item in the list per item of time}
+        keys.append('backlog')                                                  {appends backlog to the end of the 'keys' list}
+        values = [self.rMatrix1, self.rMatrix2]                                 {creates a list of 'values' containing the 2 matrices created earlier}
+        for m1, m2 in zip(self.jlist1, self.jlist2):
+            subKeys = ['r1', 'r2']                                              {creates list of matices r1 and r2}
+            subValues = [m1, m2]                                                {creates list of matices m1 and m2}
+            values.append(dict(zip(subKeys, subValues)))                        {creates dictionary with r1,r2 as keys and the m1,m2 as the values}
+        values.append(self.backlog)                                             {appends the backlog from earlier to the 'vaues' list}
+        return dict(zip(keys, values))                                          {returns the dictionary using the list of the keys and the matrices as the values}
+
+    def print(self):
+        i = 1
+        empty_counter = 0
+        for m1, m2 in zip(self.jlist1, self.jlist2):
+            m1.index += 1
+            m2.index += 1
+            empty = ""
+            if self.isempty_job(m1, m2):
+                empty_counter += 1
+                empty = "[EMPTY]"
+            print(f"Job {i} {empty}:")
+            print(tabulate(m1, headers='keys', tablefmt='psql'),'\n')
+            print(tabulate(m2, headers='keys', tablefmt='psql'))
+            i += 1
+        print("RESOURCE MATRIX: ")
+        print(tabulate(self.rMatrix1, headers='keys', tablefmt='psql'))
+        print(tabulate(self.rMatrix2, headers='keys', tablefmt='psql'))
+        print("\n\nJobBacklog")
+        print(tabulate(
+                        [list(self.backlog.values())],
+                        headers=list(self.backlog.keys()),
+                        tablefmt='psql')
+                        )
+        print(f"# EMPTY JOBS: {empty_counter} \n# JOBS IN BACKLOG: {sum(list(self.backlog.values()))}")
+
