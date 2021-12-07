@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np                                                                  {Generic imports}
 import pandas as pd
 from tabulate import tabulate
 from state_generate import Jobs
@@ -68,8 +68,8 @@ class Scheduler(gym.Env):
         self.n = n
         self.mt = mt
         self.mr = mr
-        self.action_space = [i for i in range(1, mt+1)]
-        self.action_space_n = len(self.action_space)
+        self.action_space = [i for i in range(1, mt+1)]                                 {creates a list of numbers from 1 to 1+max time}
+        self.action_space_n = len(self.action_space)                                    {creates a variable that holds the length of the action space}
         self.observation_space = self.get_observation_space()
         self.symbol = [str(i) for i in range(1, mt+1)]
         self.rows = n * mt
