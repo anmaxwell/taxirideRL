@@ -1,4 +1,4 @@
-import numpy as np                                                                  {Generic imports}
+import numpy as np                                                                      {Generic imports}
 import pandas as pd
 from tabulate import tabulate
 from state_generate import Jobs
@@ -15,21 +15,21 @@ def cut_matrix(matrix, mr, mt):
 
 def zero_df(rows, columns):
     """ returns dataframe filled with zeros and size rows x columns """
-    df = pd.DataFrame(np.zeros((rows, columns)))
+    df = pd.DataFrame(np.zeros((rows, columns)))                                        {creates a dataframe with rows and columns or zeros}
     return df
 
 def get_empty_job(rows, columns):
     """ generates an empty job of size rows x columns """
-    matrix = zero_df(rows, columns)
+    matrix = zero_df(rows, columns)                                                     {returns 2 matrices with rows and columns of zeros}
     return matrix, matrix
 
 def isempty_job(m1, m2):
     """ checks if the job having m1, m2 requirement matrix is empty """
-    return ((not m1.any().any()) and (not m2.any().any()))
+    return ((not m1.any().any()) and (not m2.any().any()))                              {checks if the inputs are empty}
 
 def get_index(s):
     """ returns the index of first zero in the pd.Series """
-    return len(s) - len(s[s==0])
+    return len(s) - len(s[s==0])                                                        {input a series and check the index of the first zero}
 
 def get_d(df1, df2):
     """returns the index of first zero in a row """
@@ -62,30 +62,30 @@ class Scheduler(gym.Env):
         There are two resources
         """
         self.state = 'INVALID' #Call make() to make an environment
-        self.action_sequence = [] #No actions taken yet
-        self.invalid_action_reward = -100
+        self.action_sequence = [] #No actions taken yet                                 {creates list for actions taken}
+        self.invalid_action_reward = -100                                               {sets action rewards}
         self.valid_action_reward = 0 #Try changing this
-        self.n = n
-        self.mt = mt
-        self.mr = mr
+        self.n = n                                                                      {sets number of jobs}
+        self.mt = mt                                                                    {sets maximum time of a job}
+        self.mr = mr                                                                    {sets maximum number of resources}
         self.action_space = [i for i in range(1, mt+1)]                                 {creates a list of numbers from 1 to 1+max time}
         self.action_space_n = len(self.action_space)                                    {creates a variable that holds the length of the action space}
         self.observation_space = self.get_observation_space()
-        self.symbol = [str(i) for i in range(1, mt+1)]
-        self.rows = n * mt
+        self.symbol = [str(i) for i in range(1, mt+1)]                                  {creates a list with strings and length is the maximum time}
+        self.rows = n * mt                                                              {sets rows and column for any matrices}
         self.columns = mr
         self.reset()
 
     def sample(self):
         """return a sample action"""
-        return np.random.choice(self.action_space)
+        return np.random.choice(self.action_space)                                      {returns a random action}
 
     def reset(self):
         """reset the environment"""
         self.done = False
-        self.cr = 0
+        self.cr = 0                                                                     {sets a field 'cr' to be 0}
         self.state = self.generate_start_state()
-        self.reward = 0
+        self.reward = 0                                                                 {starts the reward at 0}
         return self.collect_matrices()
 
     def setPosition(self, state):
